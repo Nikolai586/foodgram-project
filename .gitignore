@@ -11,6 +11,7 @@ cache/
 .vscode/
 .vscode
 sent_emails/
+foodgram/.env
 
 __pycache__/
 *.py[cod]
