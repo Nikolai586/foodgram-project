@@ -1,0 +1,58 @@
+{% if user.is_authenticated %}
+<header class="header">
+    <nav class="nav">
+        <div class="nav__container container">
+            <ul class="nav__items list">
+                {% if request.path == '/' %}
+                <li class="nav__item nav__item_active"><a href="{% url 'index' %}" class="nav__link link">Рецепты</a></li>
+                {% else %}
+                <li class="nav__item"><a href="{% url 'index' %}" class="nav__link link">Рецепты</a></li>
+                {% endif %}
+                {% if 'follow' in request.path %}
+                <li class="nav__item nav__item_active"><a href="{% url 'follow' %}" class="nav__link link">Мои подписки</a></li>
+                {% else %}
+                <li class="nav__item"><a href="{% url 'follow' %}" class="nav__link link">Мои подписки</a></li>
+                {% endif %}
+                {% if 'create' in request.path %}
+                <li class="nav__item nav__item_active"><a href="{% url 'create' %}" class="nav__link link">Создать рецепт</a></li>
+                {% else %}
+                <li class="nav__item"><a href="{% url 'create' %}" class="nav__link link">Создать рецепт</a></li>
+                {% endif %}
+                {% if 'favourites' in request.path %}
+                <li class="nav__item nav__item_active"><a href="{% url 'favourites' %}" class="nav__link link">Избранное</a></li>
+                {% else %}
+                <li class="nav__item"><a href="{% url 'favourites' %}" class="nav__link link">Избранное</a></li>
+                {% endif %}
+                {% if 'purchases' in request.path %}
+                <li class="nav__item nav__item_active"><a href="{% url 'purchases' %}" class="nav__link link">Список покупок</a> <span class="badge badge_style_blue nav__badge" id="counter">{{ recipe_bay_count }}</span></li>
+                {% else %}
+                <li class="nav__item"><a href="{% url 'purchases' %}" class="nav__link link">Список покупок</a> <span class="badge badge_style_blue nav__badge" id="counter">{{ recipe_bay_count }}</span></li>
+                {% endif %}
+            </ul>
+            <ul class="nav__items list">
+                <li class="nav__item"><a class="nav__link link">{{ request.user.username }}</a></li>
+                <li class="nav__item"><a href="{% url 'password_change' %}" class="nav__link link">Изменить пароль</a></li>
+                <li class="nav__item"><a href="{% url 'logout' %}" class="nav__link link">Выход</a></li>
+            </ul>
+        </div>
+    </nav>
+</header>
+{% else %}
+<header class="header">
+    <nav class="nav">
+        <div class="nav__container container">
+            <ul class="nav__items list">
+                {% if request.path == '/' %}
+                <li class="nav__item nav__item_active"><a href="{% url 'index' %}" class="nav__link link">Рецепты</a></li>
+                {% else %}
+                <li class="nav__item"><a href="{% url 'index' %}" class="nav__link link">Рецепты</a></li>
+                {% endif %}
+            </ul>
+            <ul class="nav__items list">
+                <li class="nav__item"><a href="{% url 'login' %}" class="nav__link link">Войти</a></li>
+                <li class="nav__item"><a href="{% url 'signup' %}" class="button button_style_blue">Создать аккаунт</a></li>
+            </ul>
+        </div>
+    </nav>
+</header>
+{% endif %}

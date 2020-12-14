@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Избранное{% endblock %}
+{% block static %}
+{% load static %}
+<link rel="stylesheet" href="{% static '/pages/index.css' %}">{% endblock %}
+{% block body %}
+<div class="main__header">
+    <h1 class="main__title">Избранное</h1>
+    {% include "filter.html" %}
+</div>
+<div class="card-list">
+    {% csrf_token %}
+    {% for recipe in page %}
+    <div class="card" data-id="{{ recipe.recipe.pk }}">
+        <a href="{% url 'single' recipe.recipe.pk %}" class="link" target="_blank"><img src="{{ recipe.recipe.image.url }}" alt="Какой-то текст" class="card__image"></a>
+        <div class="card__body">
+            <a class="card__title link" href="{% url 'single' recipe.recipe.pk %}" target="_blank">{{ recipe.recipe.title }}</a>
+            <ul class="card__items">
+                {% for tag in recipe.recipe.tag.all %}
+                    {% if 'lunch' == tag.tag %}
+                        <li class="card__item"><span class="badge badge_style_green">Обед</span></li>
+                    {% endif %}
+                    {% if 'breakfast' == tag.tag %}
+                        <li class="card__item"><span class="badge badge_style_orange">Завтрак</span></li>
+                    {% endif %}
+                    {% if tag.tag == 'dinner' %}
+                        <li class="card__item"><span class="badge badge_style_purple">Ужин</span></li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+            <div class="card__items card__items_column">
+                <p class="card__text"><span class="icon-time"></span> {{ recipe.recipe.cooking_time }} мин.</p>
+                <p class="card__text"><span class="icon-user"></span> {{ recipe.recipe.author }}</p>
+            </div>
+        </div>
+        <div class="card__footer">
+            {% if recipe.recipe.title not in purchases_list %}
+                <button class="button button_style_light-blue" name="purchases" data-out><span class="icon-plus button__icon"></span>Добавить в покупки</button>
+            {% else %}
+                <button class="button button_style_light-blue" name="purchases"><span class="icon-check button__icon"></span>Рецепт добавлен</button>
+            {% endif %}
+            <button class="button button_style_none" name="favorites"><span class="icon-favorite icon-favorite_active"></span></button>
+        </div>
+    </div>
+{% endfor %}
+{% endblock %}
+{% block js %}
+<script src="/static/js/components/MainCards.js"></script>
+
+<script src="/static/js/components/Purchases.js"></script>
+<script src="/static/js/components/Favorites.js"></script>
+
+<script src="/static/js/config/config.js"></script>
+<script src="/static/js/components/CardList.js"></script>
+<script src="/static/js/components/Header.js"></script>
+
+<script src="/static/js/api/Api.js"></script>
+<script src="/static/favorite.js"></script>
+{% endblock %}

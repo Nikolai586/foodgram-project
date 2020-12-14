@@ -1,0 +1,25 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: Password reset on 127.0.0.1:8000
+From: webmaster@localhost
+To: rik@rik.ru
+Date: Thu, 19 Nov 2020 13:53:54 -0000
+Message-ID: <160579403400.4700.3198461859674563509@DESKTOP-T761IE2>
+
+
+You're receiving this email because you requested a password reset for your user account at 127.0.0.1:8000.
+
+Please go to the following page and choose a new password:
+
+http://127.0.0.1:8000/auth/reset/Mg/5lq-b157edf6b89137dfc6b7/
+
+Your username, in case you've forgotten: rik
+
+Thanks for using our site!
+
+The 127.0.0.1:8000 team
+
+
+
+-------------------------------------------------------------------------------

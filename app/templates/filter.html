@@ -1,0 +1,34 @@
+<form method="GET">
+    <ul class="tags">
+        <li class="tags__item">
+            {% if 'tag1' in request.GET %}
+                <input type="checkbox" name="tag1" value="breakfast" class="tags__checkbox tags__checkbox_style_orange" checked>
+                <span class="tags__label">Завтрак</span>
+            {% else %}
+                <input type="checkbox" name="tag1" value="breakfast" class="tags__checkbox tags__checkbox_style_orange">
+                <span class="tags__label">Завтрак</span>
+            {% endif %}
+        </li>
+        <li class="tags__item">
+            {% if 'tag2' in request.GET %}
+                <input type="checkbox" name="tag2" value="lunch" class="tags__checkbox tags__checkbox_style_green" checked>
+                <span class="tags__label">Обед</span>
+            {% else %}
+                <input type="checkbox" name="tag2" value="lunch" class="tags__checkbox tags__checkbox_style_green">
+                <span class="tags__label">Обед</span>
+            {% endif %}
+        </li>
+        <li class="tags__item">
+            {% if 'tag3' in request.GET %}
+            <input type="checkbox" name="tag3" value="dinner" class="tags__checkbox tags__checkbox_style_purple" checked>
+            <span class="tags__label">Ужин</span>
+            {% else %}
+            <input type="checkbox" name="tag3" value="dinner" class="tags__checkbox tags__checkbox_style_purple">
+            <span class="tags__label">Ужин</span>
+            {% endif %}
+        </li>
+        <li class="tags__item">
+            <input type="submit" class="form__ingredient-link" value="Отфильтровать">
+        </li>
+    </ul>
+</form>
