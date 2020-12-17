@@ -3,3 +3,4 @@ pillow==7.0.0
 django-environ
 gunicorn==20.0.4
 psycopg2-binary==2.8.5
+djangorestframework

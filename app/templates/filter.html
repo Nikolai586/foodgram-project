@@ -1,29 +1,29 @@
 <form method="GET">
     <ul class="tags">
         <li class="tags__item">
-            {% if 'tag1' in request.GET %}
-                <input type="checkbox" name="tag1" value="breakfast" class="tags__checkbox tags__checkbox_style_orange" checked>
+            {% if 'breakfast' in tags %}
+                <input type="checkbox" name="tag" value="breakfast" class="tags__checkbox tags__checkbox_style_orange" checked>
                 <span class="tags__label">Завтрак</span>
             {% else %}
-                <input type="checkbox" name="tag1" value="breakfast" class="tags__checkbox tags__checkbox_style_orange">
+                <input type="checkbox" name="tag" value="breakfast" class="tags__checkbox tags__checkbox_style_orange">
                 <span class="tags__label">Завтрак</span>
             {% endif %}
         </li>
         <li class="tags__item">
-            {% if 'tag2' in request.GET %}
-                <input type="checkbox" name="tag2" value="lunch" class="tags__checkbox tags__checkbox_style_green" checked>
+            {% if 'lunch' in tags %}
+                <input type="checkbox" name="tag" value="lunch" class="tags__checkbox tags__checkbox_style_green" checked>
                 <span class="tags__label">Обед</span>
             {% else %}
-                <input type="checkbox" name="tag2" value="lunch" class="tags__checkbox tags__checkbox_style_green">
+                <input type="checkbox" name="tag" value="lunch" class="tags__checkbox tags__checkbox_style_green">
                 <span class="tags__label">Обед</span>
             {% endif %}
         </li>
         <li class="tags__item">
-            {% if 'tag3' in request.GET %}
-            <input type="checkbox" name="tag3" value="dinner" class="tags__checkbox tags__checkbox_style_purple" checked>
+            {% if 'dinner' in tags %}
+            <input type="checkbox" name="tag" value="dinner" class="tags__checkbox tags__checkbox_style_purple" checked>
             <span class="tags__label">Ужин</span>
             {% else %}
-            <input type="checkbox" name="tag3" value="dinner" class="tags__checkbox tags__checkbox_style_purple">
+            <input type="checkbox" name="tag" value="dinner" class="tags__checkbox tags__checkbox_style_purple">
             <span class="tags__label">Ужин</span>
             {% endif %}
         </li>

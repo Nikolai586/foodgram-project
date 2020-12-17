@@ -3,11 +3,13 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
 class Tag(models.Model):
-    tag = models.CharField(max_length=50)
+    tag = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
         return self.tag
+
 
 class Ingredient(models.Model):
     title = models.CharField(max_length=70)
@@ -16,8 +18,13 @@ class Ingredient(models.Model):
     def __str__(self):
         return self.title
 
+
 class Quantity(models.Model):
-    ingr = models.ForeignKey(Ingredient, on_delete=models.CASCADE, blank=True, null=True)
+    ingr = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE,
+        blank=True, null=True
+        )
     quantity = models.IntegerField()
 
     def __int__(self):
@@ -25,6 +32,7 @@ class Quantity(models.Model):
 
     def __str__(self):
         return '%s' % (self.ingr)
+
 
 class Recipe(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -39,13 +47,24 @@ class Recipe(models.Model):
     def __str__(self):
         return self.title
 
+
 class Subscriptions(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='follower')
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following')
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='follower'
+        )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='following'
+        )
+
 
 class Favourites(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+
 
 class Purchases(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

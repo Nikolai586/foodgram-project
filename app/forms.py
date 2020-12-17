@@ -1,5 +1,6 @@
 from django import forms
-from .models import Ingredient, Recipe, Tag, Quantity
+from .models import Ingredient, Recipe, Quantity
+
 
 class IngredientForm(forms.ModelForm):
 
@@ -7,14 +8,17 @@ class IngredientForm(forms.ModelForm):
         model = Ingredient
         fields = ['title', 'dimension']
 
+
 class QuantityForm(forms.ModelForm):
 
     class Meta:
         model = Quantity
         fields = ['quantity', 'ingr']
 
+
 class TagFilter(forms.Form):
     tag = forms.CharField(max_length=50)
+
 
 class RecipeForm(forms.ModelForm):
 
@@ -26,4 +30,3 @@ class RecipeForm(forms.ModelForm):
             'image',
             'cooking_time',
         ]
-        
