@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 import json
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from app.models import (
     Ingredient,
@@ -9,7 +10,7 @@ from app.models import (
     Subscriptions,
     Purchases
 )
-from .serializers import RecipeSerializer
+from .serializers import RecipeSerializer #, FovouritesS
 
 
 class GetIngredient(APIView):
@@ -21,6 +22,18 @@ class GetIngredient(APIView):
         return Response(serializer.data)
 
 
+# @api_view(['POST'])
+# def favourites_add(request):
+#     if request.method == 'POST':
+#         id = int(json.loads(request.body).get('id'))
+#         created = Favourites.objects.get_or_create(
+#             user_id=request.user.id, recipe_id=id
+#         )
+#         if not created:
+#             return Response({'success': False})
+#         return Response({'success': True})
+#     else:
+#         return Response({'success': False})
 @login_required
 def favourites_add(request):
     if request.method == 'POST':

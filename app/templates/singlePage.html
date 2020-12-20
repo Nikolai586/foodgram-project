@@ -46,7 +46,7 @@
             </div>
         <ul class="single-card__items">
             {% if request.user.is_authenticated %}
-                {% if recipe.title not in purchases_list %}
+                {% if recipe.pk not in purchases_list %}
                     <li class="single-card__item"><button class="button button_style_blue" name="purchases" data-out><span class="icon-plus"></span> Добавить в покупки</button></li>
                 {% else %}
                     <button class="button button_style_light-blue" name="purchases"><span class="icon-check button__icon"></span>Рецепт добавлен</button>
@@ -77,15 +77,15 @@
 </div>
 {% endblock %}
 {% block js %}
-<script src="/static/js/components/Purchases.js"></script>
-<script src="/static/js/components/Favorites.js"></script>
-<script src="/static/js/components/Subscribe.js"></script>
-<script src="/static/js/config/config.js"></script>
+<script src="{% static 'js/components/Purchases.js' %}"></script>
+<script src="{% static 'js/components/Favorites.js' %}"></script>
+<script src="{% static 'js/components/Subscribe.js' %}"></script>
+<script src="{% static 'js/config/config.js' %}"></script>
 
-<script src="/static/js/components/MainCards.js"></script>
-<script src="/static/js/components/SingleCard.js"></script>
-<script src="/static/js/components/Header.js"></script>
+<script src="{% static 'js/components/MainCards.js' %}"></script>
+<script src="{% static 'js/components/SingleCard.js' %}"></script>
+<script src="{% static 'js/components/Header.js' %}"></script>
 
-<script src="/static/js/api/Api.js"></script>
-<script src="/static/singlePage.js"></script>
+<script src="{% static 'js/api/Api.js' %}"></script>
+<script src="{% static 'singlePage.js' %}"></script>
 {% endblock %}

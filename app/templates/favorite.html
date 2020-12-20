@@ -34,7 +34,7 @@
             </div>
         </div>
         <div class="card__footer">
-            {% if recipe.recipe.title not in purchases_list %}
+            {% if recipe.recipe.pk not in purchases_list %}
                 <button class="button button_style_light-blue" name="purchases" data-out><span class="icon-plus button__icon"></span>Добавить в покупки</button>
             {% else %}
                 <button class="button button_style_light-blue" name="purchases"><span class="icon-check button__icon"></span>Рецепт добавлен</button>
@@ -45,15 +45,15 @@
 {% endfor %}
 {% endblock %}
 {% block js %}
-<script src="/static/js/components/MainCards.js"></script>
+<script src="{% static 'js/components/MainCards.js' %}"></script>
 
-<script src="/static/js/components/Purchases.js"></script>
-<script src="/static/js/components/Favorites.js"></script>
+<script src="{% static 'js/components/Purchases.js' %}"></script>
+<script src="{% static 'js/components/Favorites.js' %}"></script>
 
-<script src="/static/js/config/config.js"></script>
-<script src="/static/js/components/CardList.js"></script>
-<script src="/static/js/components/Header.js"></script>
+<script src="{% static 'js/config/config.js' %}"></script>
+<script src="{% static 'js/components/CardList.js' %}"></script>
+<script src="{% static 'js/components/Header.js' %}"></script>
 
-<script src="/static/js/api/Api.js"></script>
-<script src="/static/favorite.js"></script>
+<script src="{% static 'js/api/Api.js' %}"></script>
+<script src="{% static 'favorite.js' %}"></script>
 {% endblock %}

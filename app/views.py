@@ -18,30 +18,33 @@ from .forms import RecipeForm
 
 User = get_user_model()
 
+PAGE_COUNT = 9
 
 class Index(View):
 
     def get(self, request):
         tags = request.GET.getlist('tag')
         if tags != []:
-            recipe_list = Recipe.objects.filter(tag__tag__in=tags)\
-                .order_by('-pub_date').all()
+            recipe_list = Recipe.objects.filter(
+                tag__tag__in=tags
+                ).order_by('-pub_date').all()
         else:
             recipe_list = Recipe.objects.order_by('-pub_date').all()
-        paginator = Paginator(recipe_list, 9)
+        paginator = Paginator(recipe_list, PAGE_COUNT)
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
         if request.user.is_authenticated:
             purchases = Purchases.objects.filter(user__username=request.user)
             favorite = Favourites.objects.filter(user=request.user)
-            recipe_bay_count = Purchases.objects\
-                .filter(user__username=request.user).count()
+            recipe_bay_count = Purchases.objects.filter(
+                user__username=request.user
+                ).count()
             purchases_list = []
             favorite_list = []
             for i in favorite:
-                favorite_list.append(i.recipe.title)
+                favorite_list.append(i.recipe.pk)
             for i in purchases:
-                purchases_list.append(i.recipe.title)
+                purchases_list.append(i.recipe.pk)
             return render(request, 'index.html', {
                 'page': page,
                 'paginator': paginator,
@@ -63,12 +66,14 @@ def author_ricipe(request, username):
         tags = request.GET.getlist('tag')
         profile = get_object_or_404(User, username=username)
         if tags != []:
-            recipe_list = Recipe.objects.filter(author__username=profile)\
-                .filter(tag__tag__in=tags).order_by('-pub_date')
+            recipe_list = Recipe.objects.filter(
+                author__username=profile
+                ).filter(tag__tag__in=tags).order_by('-pub_date')
         else:
-            recipe_list = Recipe.objects.filter(author__username=profile)\
-                .order_by('-pub_date')
-        paginator = Paginator(recipe_list, 9)
+            recipe_list = Recipe.objects.filter(
+                author__username=profile
+                ).order_by('-pub_date')
+        paginator = Paginator(recipe_list, PAGE_COUNT)
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
         if request.user.is_authenticated:
@@ -86,9 +91,9 @@ def author_ricipe(request, username):
             favorite_list = []
             purchases_list = []
             for i in purchases:
-                purchases_list.append(i.recipe.title)
+                purchases_list.append(i.recipe.pk)
             for i in favorite:
-                favorite_list.append(i.recipe.title)
+                favorite_list.append(i.recipe.pk)
             return render(request, 'authorRecipe.html', {
                 'page': page,
                 'paginator': paginator,
@@ -129,7 +134,7 @@ def single(request, recipe_id):
             )
         purchases_list = []
         for i in purchases:
-            purchases_list.append(i.recipe.title)
+            purchases_list.append(i.recipe.pk)
         return render(request, 'singlePage.html', {
             'recipe': recipe,
             'favorite': favorite,
@@ -162,8 +167,8 @@ def favourites(request):
             )
         purchases_list = []
         for i in purchases:
-            purchases_list.append(i.recipe.title)
-        paginator = Paginator(recipe_list, 9)
+            purchases_list.append(i.recipe.pk)
+        paginator = Paginator(recipe_list, PAGE_COUNT)
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
         return render(request, 'favorite.html', {
@@ -200,7 +205,7 @@ def subscriptions_list(request):
                 'recipe': recipe,
                 'recipe_count': recipe_count
                 })
-        paginator = Paginator(recipe_list, 6)
+        paginator = Paginator(recipe_list, PAGE_COUNT)
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
         return render(request, 'myFollow.html', {
@@ -294,7 +299,6 @@ def create_recipe(request):
         tags = get_tag_create_recipe(request)
         if tags == []:
             return form.add_error('Не добавлены теги')
-        print(request.POST)
         if form.is_valid():
             new = form.save(commit=False)
             new.author = request.user

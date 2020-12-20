@@ -86,13 +86,14 @@ environ.Env.read_env()
 DATABASES = {
     'default': {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DB_NAME"),
-        "USER": os.environ.get("POSTGRES_USER"),
+        "NAME": 'foodgram',#os.environ.get("POSTGRES_DB"),
+        "USER": 'foodgram_user', #os.environ.get("POSTGRES_USER"),
         "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
-        "HOST": os.environ.get("DB_HOST"),
+        "HOST": 'localhost',# os.environ.get("DB_HOST"),
         "PORT": os.environ.get("DB_PORT"),
     }
 }
+
 
 # DATABASES = {
 #     'default': {
@@ -142,7 +143,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'statics')
+#STATIC_ROOT = os.path.join(BASE_DIR, 'statics')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
