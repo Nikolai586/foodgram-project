@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from app.models import Tag
+from recipe.models import Tag
 
 
 class Command(BaseCommand):

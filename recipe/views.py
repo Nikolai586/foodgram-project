@@ -34,17 +34,19 @@ class Index(View):
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
         if request.user.is_authenticated:
-            purchases = Purchases.objects.filter(user__username=request.user)
-            favorite = Favourites.objects.filter(user=request.user)
+            purchases = Purchases.objects.filter(user__username=request.user).values_list('recipe_id')
+            favorite = Favourites.objects.filter(user=request.user).values_list('recipe_id')
             recipe_bay_count = Purchases.objects.filter(
                 user__username=request.user
                 ).count()
             purchases_list = []
             favorite_list = []
             for i in favorite:
-                favorite_list.append(i.recipe.pk)
+                favorite_list.append(i[0])
+                #favorite_list.append(i.recipe.pk)
             for i in purchases:
-                purchases_list.append(i.recipe.pk)
+                purchases_list.append(i[0])
+                #purchases_list.append(i.recipe.pk)
             return render(request, 'index.html', {
                 'page': page,
                 'paginator': paginator,
@@ -79,7 +81,7 @@ def author_ricipe(request, username):
         if request.user.is_authenticated:
             purchases = Purchases.objects.filter(
                 user__username=request.user
-                )
+                ).values_list('recipe_id')
             subscribers = Subscriptions.objects.filter(
                 user__username=request.user,
                 author__username=profile.username
@@ -87,13 +89,13 @@ def author_ricipe(request, username):
             recipe_bay_count = Purchases.objects.filter(
                 user__username=request.user
                 ).count()
-            favorite = Favourites.objects.filter(user=request.user)
+            favorite = Favourites.objects.filter(user=request.user).values_list('recipe_id')
             favorite_list = []
             purchases_list = []
             for i in purchases:
-                purchases_list.append(i.recipe.pk)
+                purchases_list.append(i[0])
             for i in favorite:
-                favorite_list.append(i.recipe.pk)
+                favorite_list.append(i[0])
             return render(request, 'authorRecipe.html', {
                 'page': page,
                 'paginator': paginator,
@@ -119,7 +121,7 @@ def single(request, recipe_id):
     if request.user.is_authenticated:
         purchases = Purchases.objects.filter(
             user__username=request.user
-            )
+            ).values_list('recipe_id')
         favorite = Favourites.objects.filter(
             user=request.user,
             recipe_id=recipe_id
@@ -134,7 +136,7 @@ def single(request, recipe_id):
             )
         purchases_list = []
         for i in purchases:
-            purchases_list.append(i.recipe.pk)
+            purchases_list.append(i[0])
         return render(request, 'singlePage.html', {
             'recipe': recipe,
             'favorite': favorite,
@@ -164,10 +166,10 @@ def favourites(request):
             ).count()
         purchases = Purchases.objects.filter(
             user__username=request.user
-            )
+            ).values_list('recipe_id')
         purchases_list = []
         for i in purchases:
-            purchases_list.append(i.recipe.pk)
+            purchases_list.append(i[0])
         paginator = Paginator(recipe_list, PAGE_COUNT)
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
@@ -351,7 +353,6 @@ def recipe_edit(request, username, id):
         tags = get_tag_create_recipe(request)
         if tags == []:
             return form.add_error('Не добавлены теги')
-        print(request.POST)
         if form.is_valid():
             new = form.save(commit=False)
             new.save()

@@ -40,9 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'app',
+    'recipe',
+    'api',
     'rest_framework',
- #   'sorl.thumbnail',
 ]
 
 MIDDLEWARE = [
@@ -86,7 +86,7 @@ environ.Env.read_env()
 DATABASES = {
     'default': {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": 'foodgram',#os.environ.get("POSTGRES_DB"),
+        "NAME": 'foodgram_project',#os.environ.get("POSTGRES_DB"),
         "USER": 'foodgram_user', #os.environ.get("POSTGRES_USER"),
         "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
         "HOST": 'localhost',# os.environ.get("DB_HOST"),

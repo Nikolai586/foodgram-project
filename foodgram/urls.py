@@ -28,7 +28,7 @@ urlpatterns = [
     path('technologies/', views.flatpage, {'url': '/technologies/'}, name='technologies'),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
-    path('', include('app.urls')),
+    path('', include('recipe.urls')),
 ]
 
 urlpatterns += staticfiles_urlpatterns()
