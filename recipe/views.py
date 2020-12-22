@@ -410,3 +410,11 @@ def purchases_del_not_js(request, id):
         'recipe_list': recipe_list,
         'recipe_bay_count': recipe_bay_count
         })
+
+def page_not_found(request, exception):
+    return render(
+        request, 
+        "misc/404.html", 
+        {"path": request.path}, 
+        status=404
+    )

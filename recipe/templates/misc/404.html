@@ -1,22 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Рецепты{% endblock %}
+{% block title %}Ошибка 404{% endblock %}
 {% block static %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'pages/index.css' %}">{% endblock %}
 {% block body %}
 <div class="main__header">
-    <h1 class="main__title">Рецепты</h1>
-    {% include "filter.html" %}
+    <h1 class="main__title">Ошибка 404</h1>
+    <h2 class="main__title">Страница не найдена</h2>
 </div>
-<div class="card-list">
-    {% csrf_token %}
-    {% for recipe in page %}
-        {% include "rec.html" with recipe=recipe %}
-    {% endfor %}
-</div>
-{% if page.has_other_pages %}
-    {% include "paginator.html" with items=page paginator=paginator%}
-{% endif %}
 {% endblock %}
 {% block js %}
 <script src="{% static 'js/components/MainCards.js' %}"></script>
