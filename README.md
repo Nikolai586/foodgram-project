@@ -5,3 +5,5 @@
 Создание ингредиентов - python manage.py fillingdb
 
 Создание тегов - python manage.py tags
+
+вот адрес: best-chef.ml
