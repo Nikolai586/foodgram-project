@@ -6,4 +6,4 @@
 
 Создание тегов - python manage.py tags
 
-вот адрес: best-chef.ml
+вот адрес: http://178.154.230.166/
