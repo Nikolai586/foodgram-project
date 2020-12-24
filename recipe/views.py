@@ -5,6 +5,7 @@ from django.views.generic.base import View
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
+import pandas as pd
 from .models import (
     Recipe,
     Tag,
@@ -20,13 +21,48 @@ User = get_user_model()
 
 PAGE_COUNT = 9
 
+tag_list = []
+
+
+def filter_tag(request):
+    tag = request.GET.getlist('tag')
+    if tag != []:
+        if tag[0] not in tag_list:
+            tag_list.append(tag[0])
+        else:
+            tag_list.remove(tag[0])
+    return tag_list
+
+
+def recipe_count(request):
+    return Purchases.objects.filter(
+                user__username=request.user
+                ).count()
+
+
+def get_purchases(request):
+    purchases = Purchases.objects.filter(user__username=request.user).values_list('recipe_id')
+    purchases_list = []
+    for i in purchases:
+        purchases_list.append(i[0])
+    return purchases_list
+
+
+def get_favorite(request):
+    favorite = Favourites.objects.filter(user=request.user).values_list('recipe_id')
+    favorite_list = []
+    for i in favorite:
+        favorite_list.append(i[0])
+    return favorite_list
+
+
 class Index(View):
 
     def get(self, request):
-        tags = request.GET.getlist('tag')
-        if tags != []:
+        filter_tag(request)
+        if tag_list != []:
             recipe_list = Recipe.objects.filter(
-                tag__tag__in=tags
+                tag__tag__in=tag_list
                 ).order_by('-pub_date').all()
         else:
             recipe_list = Recipe.objects.order_by('-pub_date').all()
@@ -34,43 +70,34 @@ class Index(View):
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
         if request.user.is_authenticated:
-            purchases = Purchases.objects.filter(user__username=request.user).values_list('recipe_id')
             favorite = Favourites.objects.filter(user=request.user).values_list('recipe_id')
-            recipe_bay_count = Purchases.objects.filter(
-                user__username=request.user
-                ).count()
-            purchases_list = []
             favorite_list = []
             for i in favorite:
                 favorite_list.append(i[0])
-                #favorite_list.append(i.recipe.pk)
-            for i in purchases:
-                purchases_list.append(i[0])
-                #purchases_list.append(i.recipe.pk)
             return render(request, 'index.html', {
                 'page': page,
                 'paginator': paginator,
-                'recipe_bay_count': recipe_bay_count,
-                'purchases_list': purchases_list,
-                'favorite_list': favorite_list,
-                'tags': tags
+                'recipe_bay_count': recipe_count(request),
+                'purchases_list': get_purchases(request),
+                'favorite_list': get_favorite(request),
+                'tag_list': tag_list
                 })
         else:
             return render(request, 'index.html', {
                 'page': page,
                 'paginator': paginator,
-                'tags': tags
+                'tag_list': tag_list
             })
 
 
 def author_ricipe(request, username):
     if request.method == 'GET':
-        tags = request.GET.getlist('tag')
+        filter_tag(request)
         profile = get_object_or_404(User, username=username)
-        if tags != []:
+        if tag_list != []:
             recipe_list = Recipe.objects.filter(
                 author__username=profile
-                ).filter(tag__tag__in=tags).order_by('-pub_date')
+                ).filter(tag__tag__in=tag_list).order_by('-pub_date')
         else:
             recipe_list = Recipe.objects.filter(
                 author__username=profile
@@ -79,32 +106,19 @@ def author_ricipe(request, username):
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
         if request.user.is_authenticated:
-            purchases = Purchases.objects.filter(
-                user__username=request.user
-                ).values_list('recipe_id')
             subscribers = Subscriptions.objects.filter(
                 user__username=request.user,
                 author__username=profile.username
                 )
-            recipe_bay_count = Purchases.objects.filter(
-                user__username=request.user
-                ).count()
-            favorite = Favourites.objects.filter(user=request.user).values_list('recipe_id')
-            favorite_list = []
-            purchases_list = []
-            for i in purchases:
-                purchases_list.append(i[0])
-            for i in favorite:
-                favorite_list.append(i[0])
             return render(request, 'authorRecipe.html', {
                 'page': page,
                 'paginator': paginator,
                 'profile': profile,
                 'subscribers': subscribers,
-                'favorite_list': favorite_list,
-                'recipe_bay_count': recipe_bay_count,
-                'purchases_list': purchases_list,
-                'tags': tags
+                'favorite_list': get_favorite(request),
+                'recipe_bay_count': recipe_count(request),
+                'purchases_list': get_purchases(request),
+                'tag_list': tag_list
                 })
         else:
             return render(request, 'authorRecipe.html', {
@@ -116,33 +130,31 @@ def author_ricipe(request, username):
 
 
 def single(request, recipe_id):
+    recipe = Recipe.objects.filter(pk=recipe_id).exists()
+    if not recipe:
+        return render(
+            request, 
+            "misc/404.html", 
+            {"path": request.path}, 
+            status=404
+        )
     recipe = Recipe.objects.get(pk=recipe_id)
-
     if request.user.is_authenticated:
-        purchases = Purchases.objects.filter(
-            user__username=request.user
-            ).values_list('recipe_id')
         favorite = Favourites.objects.filter(
             user=request.user,
             recipe_id=recipe_id
             )
-        recipe_bay_count = Purchases.objects.filter(
-            user__username=request.user
-            ).count()
         recipe = get_object_or_404(Recipe, pk=recipe_id)
         subscribers = Subscriptions.objects.filter(
             user__username=request.user,
             author=recipe.author
             )
-        purchases_list = []
-        for i in purchases:
-            purchases_list.append(i[0])
         return render(request, 'singlePage.html', {
             'recipe': recipe,
             'favorite': favorite,
             'subscribers': subscribers,
-            'recipe_bay_count': recipe_bay_count,
-            'purchases_list': purchases_list
+            'recipe_bay_count': recipe_count(request),
+            'purchases_list': get_purchases(request)
             })
     else:
         return render(request, 'singlePage.html', {'recipe': recipe})
@@ -151,34 +163,25 @@ def single(request, recipe_id):
 @login_required
 def favourites(request):
     if request.method == 'GET':
-        tags = request.GET.getlist('tag')
+        filter_tag(request)
         profile = get_object_or_404(User, username=request.user)
-        if tags != []:
+        if tag_list != []:
             recipe_list = Favourites.objects.filter(
                 user__username=profile
-                ).filter(recipe__tag__tag__in=tags)
+                ).filter(recipe__tag__tag__in=tag_list)
         else:
             recipe_list = Favourites.objects.filter(
                 user__username=request.user
                 )
-        recipe_bay_count = Purchases.objects.filter(
-            user__username=request.user
-            ).count()
-        purchases = Purchases.objects.filter(
-            user__username=request.user
-            ).values_list('recipe_id')
-        purchases_list = []
-        for i in purchases:
-            purchases_list.append(i[0])
         paginator = Paginator(recipe_list, PAGE_COUNT)
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
         return render(request, 'favorite.html', {
             'page': page,
             'paginator': paginator,
-            'recipe_bay_count': recipe_bay_count,
-            'purchases_list': purchases_list,
-            'tags': tags
+            'recipe_bay_count': recipe_count(request),
+            'purchases_list': get_purchases(request),
+            'tag_list': tag_list
             })
 
 
@@ -188,9 +191,6 @@ def subscriptions_list(request):
         subscribers = Subscriptions.objects.filter(
             user__username=request.user
             )
-        recipe_bay_count = Purchases.objects.filter(
-            user__username=request.user
-            ).count()
         authers = []
         for author in subscribers:
             authers.append(author.author)
@@ -199,21 +199,21 @@ def subscriptions_list(request):
             recipe = Recipe.objects.filter(
                 author=author
                 ).order_by('-pub_date')[:3]
-            recipe_count = Recipe.objects.filter(
+            recipe_countt = Recipe.objects.filter(
                 author=author
                 ).count() - 3
             recipe_list.append({
                 'author': author,
                 'recipe': recipe,
-                'recipe_count': recipe_count
+                'recipe_countt': recipe_countt
                 })
         paginator = Paginator(recipe_list, PAGE_COUNT)
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
         return render(request, 'myFollow.html', {
             'page': page,
-            'paginator': paginator,
-            'recipe_bay_count': recipe_bay_count
+            'recipe_bay_count': recipe_count(request),
+            'paginator': paginator
             })
 
 
@@ -223,12 +223,9 @@ def purchases(request):
         recipe_list = Purchases.objects.filter(
             user__username=request.user
             )
-        recipe_bay_count = Purchases.objects.filter(
-            user__username=request.user
-            ).count()
         return render(request, 'shopList.html', {
             'recipe_list': recipe_list,
-            'recipe_bay_count': recipe_bay_count
+            'recipe_bay_count': recipe_count(request)
             })
 
 
@@ -263,9 +260,11 @@ def purchases_file(request):
                         ingredients_final.append(i)
             else:
                 ingredients_final.append(i)
+        final =  pd.DataFrame(pd.Series(ingredients_final, name = 'column1'))
+        final_2 = final.to_string(header=False, index=True)
         response = HttpResponse(
-            ingredients_final,
-            content_type='application/vnd.ms-excel'
+            final_2,
+            content_type='application/.txt'
             )
         response['Content-Disposition'] = \
             'attachment; filename="purchases.txt"'
@@ -293,14 +292,23 @@ def get_tag_create_recipe(request):
 
 @login_required
 def create_recipe(request):
+    recipe_bay_count = recipe_count(request)
     if request.method == 'POST':
         form = RecipeForm(request.POST or None, files=request.FILES or None)
         ingredients = get_ingredients_create_recipe(request)
         if ingredients == []:
-            return form.add_error('Вы не указали ингридиенты')
+            error_ing = 'Не добавлены ингридиенты'
+            return render(request, 'formRecipe.html', {
+                'recipe_bay_count': recipe_bay_count,
+                'error_ing': error_ing
+            })
         tags = get_tag_create_recipe(request)
         if tags == []:
-            return form.add_error('Не добавлены теги')
+            error_tag = 'Не добавлены теги'
+            return render(request, 'formRecipe.html', {
+                'recipe_bay_count': recipe_bay_count,
+                'error_tag': error_tag
+            })
         if form.is_valid():
             new = form.save(commit=False)
             new.author = request.user
@@ -323,11 +331,7 @@ def create_recipe(request):
                 new.tag.add(tag)
             form.save_m2m()
             return redirect('index')
-
-    recipe_bay_count = Purchases.objects.filter(
-        user__username=request.user
-        ).count()
-    return render(request, 'formRecipe1.html', {
+    return render(request, 'formRecipe.html', {
         'recipe_bay_count': recipe_bay_count
         })
 
@@ -336,9 +340,12 @@ def create_recipe(request):
 def recipe_edit(request, username, id):
     profile = get_object_or_404(User, username=username)
     recipe = get_object_or_404(Recipe, pk=id)
-    recipe_bay_count = Purchases.objects.filter(
-        user__username=request.user
-        ).count()
+    recipe_bay_count = recipe_count(request)
+    ingredientes = recipe.quantity.all()
+    tag = recipe.tag.all()
+    tags = []
+    for i in tag:
+        tags.append(i.tag)
     if request.user != profile:
         return redirect('single', id)
     if request.method == 'POST':
@@ -349,10 +356,24 @@ def recipe_edit(request, username, id):
             )
         ingredients = get_ingredients_create_recipe(request)
         if ingredients == []:
-            return form.add_error('Вы не указали ингридиенты')
+            error_ing = 'Не добавлены ингридиенты'
+            return render(request, 'formChangeRecipe.html', {
+                'recipe_bay_count': recipe_bay_count,
+                'error_ing': error_ing,
+                'recipe': recipe,
+                'ingredientes': ingredientes,
+                'tags': tags
+            })
         tags = get_tag_create_recipe(request)
         if tags == []:
-            return form.add_error('Не добавлены теги')
+            error_tag = 'Не добавлены теги'
+            return render(request, 'formChangeRecipe.html', {
+                'recipe_bay_count': recipe_bay_count,
+                'error_tag': error_tag,
+                'recipe': recipe,
+                'ingredientes': ingredientes,
+                'tags': tags
+            })
         if form.is_valid():
             new = form.save(commit=False)
             new.save()
@@ -377,11 +398,6 @@ def recipe_edit(request, username, id):
             form.save_m2m()
             return redirect('single', recipe.pk)
 
-    ingredientes = recipe.quantity.all()
-    tag = recipe.tag.all()
-    tags = []
-    for i in tag:
-        tags.append(i.tag)
     return render(request, 'formChangeRecipe.html', {
         'recipe_bay_count': recipe_bay_count,
         'recipe': recipe,
@@ -403,12 +419,9 @@ def delete_recipe(request, username, id):
 def purchases_del_not_js(request, id):
     Purchases.objects.get(recipe_id=id).delete()
     recipe_list = Purchases.objects.filter(user__username=request.user)
-    recipe_bay_count = Purchases.objects.filter(
-        user__username=request.user
-        ).count()
     return render(request, 'shopList.html', {
         'recipe_list': recipe_list,
-        'recipe_bay_count': recipe_bay_count
+        'recipe_bay_count': recipe_count(request)
         })
 
 def page_not_found(request, exception):

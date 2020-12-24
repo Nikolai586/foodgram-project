@@ -25,9 +25,9 @@
                 </div>
             </li>
             {% endfor %}
-            {% if author.recipe_count > 0 %}
+            {% if author.recipe_countt > 0 %}
             <li class="card-user__item">
-                <a href="{% url 'author_recipe' author.author %}" class="card-user__link link">Еще {{ author.recipe_count }} рецептов...</a>
+                <a href="{% url 'author_recipe' author.author %}" class="card-user__link link">Еще {{ author.recipe_countt }} рецептов...</a>
             </li>
             {% else %}
             <li class="card-user__item">

@@ -1,5 +1,5 @@
 <div class="card" data-id="{{ recipe.pk }}">
-    <a href="#" class="link" target="_blank"><img src="{{ recipe.image.url }}" alt="Какой-то текст" class="card__image"></a>
+    <a href="{% url 'single' recipe.pk %}" class="link" target="_blank"><img src="{{ recipe.image.url }}" alt="Какой-то текст" class="card__image"></a>
     <div class="card__body">
         <a class="card__title link" href="{% url 'single' recipe.pk %}" target="_blank">{{ recipe.title }}</a>
         <ul class="card__items">

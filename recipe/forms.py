@@ -22,6 +22,11 @@ class TagFilter(forms.Form):
 
 class RecipeForm(forms.ModelForm):
 
+    error_messages = {
+        'tag': 'не добавлены теги',
+        'ingredients': 'не добавлены ингридиенты'
+    }
+
     class Meta:
         model = Recipe
         fields = [
