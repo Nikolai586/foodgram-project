@@ -27,11 +27,15 @@ tag_list = []
 def filter_tag(request):
     tag = request.GET.getlist('tag')
     if tag != []:
+        print(tag)
         if tag[0] not in tag_list:
             tag_list.append(tag[0])
         else:
             tag_list.remove(tag[0])
-    return tag_list
+        return tag_list
+    else:
+        tag_list.clear()
+        return tag_list
 
 
 def recipe_count(request):
@@ -60,6 +64,9 @@ class Index(View):
 
     def get(self, request):
         filter_tag(request)
+        # tag = request.GET.get('tag')
+        # if tag == None:
+        #     tag_list = []
         if tag_list != []:
             recipe_list = Recipe.objects.filter(
                 tag__tag__in=tag_list
@@ -124,7 +131,6 @@ def author_ricipe(request, username):
             return render(request, 'authorRecipe.html', {
                 'page': page,
                 'paginator': paginator,
-                'tags': tags,
                 'profile': profile
             })
 

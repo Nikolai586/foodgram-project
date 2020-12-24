@@ -30,7 +30,7 @@
             </ul>
             <div class="card__items card__items_column">
                 <p class="card__text"><span class="icon-time"></span> {{ recipe.recipe.cooking_time }} мин.</p>
-                <p class="card__text"><span class="icon-user"></span> {{ recipe.recipe.author }}</p>
+                <p class="card__text"><span class="icon-user"></span> {{ recipe.recipe.author.get_full_name }}</p>
             </div>
         </div>
         <div class="card__footer">

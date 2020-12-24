@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '%1czt%^!gopoh@8^=)^jxy#2ag$aujha1ud02c68426je&0o)1'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -86,10 +86,10 @@ environ.Env.read_env()
 DATABASES = {
     'default': {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("POSTGRES_DB"),
-        "USER": os.environ.get("POSTGRES_USER"),
+        "NAME": 'foodgram_project', #os.environ.get("POSTGRES_DB"),
+        "USER": 'foodgram_user', #os.environ.get("POSTGRES_USER"),
         "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
-        "HOST": os.environ.get("DB_HOST"),
+        "HOST": 'localhost', #os.environ.get("DB_HOST"),
         "PORT": os.environ.get("DB_PORT"),
     }
 }
