@@ -21,28 +21,6 @@ User = get_user_model()
 
 PAGE_COUNT = 9
 
-tag_list = []
-
-
-def filter_tag(request):
-    tag = request.GET.getlist('tag')
-    if tag != []:
-        print(tag)
-        if tag[0] not in tag_list:
-            tag_list.append(tag[0])
-        else:
-            tag_list.remove(tag[0])
-        return tag_list
-    else:
-        tag_list.clear()
-        return tag_list
-
-
-def recipe_count(request):
-    return Purchases.objects.filter(
-                user__username=request.user
-                ).count()
-
 
 def get_purchases(request):
     purchases = Purchases.objects.filter(user__username=request.user).values_list('recipe_id')
@@ -63,10 +41,7 @@ def get_favorite(request):
 class Index(View):
 
     def get(self, request):
-        filter_tag(request)
-        # tag = request.GET.get('tag')
-        # if tag == None:
-        #     tag_list = []
+        tag_list = request.GET.getlist('tag')
         if tag_list != []:
             recipe_list = Recipe.objects.filter(
                 tag__tag__in=tag_list
@@ -84,7 +59,6 @@ class Index(View):
             return render(request, 'index.html', {
                 'page': page,
                 'paginator': paginator,
-                'recipe_bay_count': recipe_count(request),
                 'purchases_list': get_purchases(request),
                 'favorite_list': get_favorite(request),
                 'tag_list': tag_list
@@ -99,7 +73,7 @@ class Index(View):
 
 def author_ricipe(request, username):
     if request.method == 'GET':
-        filter_tag(request)
+        tag_list = request.GET.getlist('tag')
         profile = get_object_or_404(User, username=username)
         if tag_list != []:
             recipe_list = Recipe.objects.filter(
@@ -117,21 +91,21 @@ def author_ricipe(request, username):
                 user__username=request.user,
                 author__username=profile.username
                 )
-            return render(request, 'authorRecipe.html', {
+            return render(request, 'author_recipe.html', {
                 'page': page,
                 'paginator': paginator,
                 'profile': profile,
                 'subscribers': subscribers,
                 'favorite_list': get_favorite(request),
-                'recipe_bay_count': recipe_count(request),
                 'purchases_list': get_purchases(request),
                 'tag_list': tag_list
                 })
         else:
-            return render(request, 'authorRecipe.html', {
+            return render(request, 'author_recipe.html', {
                 'page': page,
                 'paginator': paginator,
-                'profile': profile
+                'profile': profile,
+                'tag_list': tag_list
             })
 
 
@@ -155,21 +129,20 @@ def single(request, recipe_id):
             user__username=request.user,
             author=recipe.author
             )
-        return render(request, 'singlePage.html', {
+        return render(request, 'single_page.html', {
             'recipe': recipe,
             'favorite': favorite,
             'subscribers': subscribers,
-            'recipe_bay_count': recipe_count(request),
             'purchases_list': get_purchases(request)
             })
     else:
-        return render(request, 'singlePage.html', {'recipe': recipe})
+        return render(request, 'single_page.html', {'recipe': recipe})
 
 
 @login_required
 def favourites(request):
     if request.method == 'GET':
-        filter_tag(request)
+        tag_list = request.GET.getlist('tag')
         profile = get_object_or_404(User, username=request.user)
         if tag_list != []:
             recipe_list = Favourites.objects.filter(
@@ -185,7 +158,6 @@ def favourites(request):
         return render(request, 'favorite.html', {
             'page': page,
             'paginator': paginator,
-            'recipe_bay_count': recipe_count(request),
             'purchases_list': get_purchases(request),
             'tag_list': tag_list
             })
@@ -216,9 +188,8 @@ def subscriptions_list(request):
         paginator = Paginator(recipe_list, PAGE_COUNT)
         page_number = request.GET.get('page')
         page = paginator.get_page(page_number)
-        return render(request, 'myFollow.html', {
+        return render(request, 'my_follow.html', {
             'page': page,
-            'recipe_bay_count': recipe_count(request),
             'paginator': paginator
             })
 
@@ -229,9 +200,8 @@ def purchases(request):
         recipe_list = Purchases.objects.filter(
             user__username=request.user
             )
-        return render(request, 'shopList.html', {
+        return render(request, 'shop_list.html', {
             'recipe_list': recipe_list,
-            'recipe_bay_count': recipe_count(request)
             })
 
 
@@ -298,23 +268,27 @@ def get_tag_create_recipe(request):
 
 @login_required
 def create_recipe(request):
-    recipe_bay_count = recipe_count(request)
     if request.method == 'POST':
         form = RecipeForm(request.POST or None, files=request.FILES or None)
         ingredients = get_ingredients_create_recipe(request)
         if ingredients == []:
             error_ing = 'Не добавлены ингридиенты'
-            return render(request, 'formRecipe.html', {
-                'recipe_bay_count': recipe_bay_count,
+            return render(request, 'form_recipe.html', {
                 'error_ing': error_ing
             })
         tags = get_tag_create_recipe(request)
         if tags == []:
             error_tag = 'Не добавлены теги'
-            return render(request, 'formRecipe.html', {
-                'recipe_bay_count': recipe_bay_count,
+            return render(request, 'form_recipe.html', {
                 'error_tag': error_tag
             })
+        for i in ingredients:
+            ingredient = Ingredient.objects.filter(title=i['title']).exists()
+            if not ingredient:
+                error_ing = 'таких ингридиентов не существует'
+                return render(request, 'form_recipe.html', {
+                    'error_ing': error_ing
+                })
         if form.is_valid():
             new = form.save(commit=False)
             new.author = request.user
@@ -337,16 +311,13 @@ def create_recipe(request):
                 new.tag.add(tag)
             form.save_m2m()
             return redirect('index')
-    return render(request, 'formRecipe.html', {
-        'recipe_bay_count': recipe_bay_count
-        })
+    return render(request, 'form_recipe.html')
 
 
 @login_required
 def recipe_edit(request, username, id):
     profile = get_object_or_404(User, username=username)
     recipe = get_object_or_404(Recipe, pk=id)
-    recipe_bay_count = recipe_count(request)
     ingredientes = recipe.quantity.all()
     tag = recipe.tag.all()
     tags = []
@@ -363,18 +334,26 @@ def recipe_edit(request, username, id):
         ingredients = get_ingredients_create_recipe(request)
         if ingredients == []:
             error_ing = 'Не добавлены ингридиенты'
-            return render(request, 'formChangeRecipe.html', {
-                'recipe_bay_count': recipe_bay_count,
+            return render(request, 'form_change_recipe.html', {
                 'error_ing': error_ing,
                 'recipe': recipe,
                 'ingredientes': ingredientes,
                 'tags': tags
             })
+        for i in ingredients:
+            ingredient = Ingredient.objects.filter(title=i['title']).exists()
+            if not ingredient:
+                error_ing = 'таких ингридиентов не существует'
+                return render(request, 'form_change_recipe.html', {
+                    'error_ing': error_ing,
+                    'recipe': recipe,
+                    'ingredientes': ingredientes,
+                    'tags': tags
+                })
         tags = get_tag_create_recipe(request)
         if tags == []:
             error_tag = 'Не добавлены теги'
-            return render(request, 'formChangeRecipe.html', {
-                'recipe_bay_count': recipe_bay_count,
+            return render(request, 'form_change_recipe.html', {
                 'error_tag': error_tag,
                 'recipe': recipe,
                 'ingredientes': ingredientes,
@@ -404,8 +383,7 @@ def recipe_edit(request, username, id):
             form.save_m2m()
             return redirect('single', recipe.pk)
 
-    return render(request, 'formChangeRecipe.html', {
-        'recipe_bay_count': recipe_bay_count,
+    return render(request, 'form_change_recipe.html', {
         'recipe': recipe,
         'ingredientes': ingredientes,
         'tags': tags
@@ -425,9 +403,8 @@ def delete_recipe(request, username, id):
 def purchases_del_not_js(request, id):
     Purchases.objects.get(recipe_id=id).delete()
     recipe_list = Purchases.objects.filter(user__username=request.user)
-    return render(request, 'shopList.html', {
+    return render(request, 'shop_list.html', {
         'recipe_list': recipe_list,
-        'recipe_bay_count': recipe_count(request)
         })
 
 def page_not_found(request, exception):
