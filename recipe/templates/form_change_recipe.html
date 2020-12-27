@@ -49,7 +49,7 @@
                         {% endif %}
                     </div>
                 </div>
-                <span class="form__error">{{ error_tag }}</span>
+                <span class="form__error"></span>
             </div>
         </div>
         <div class="form__group">
@@ -76,7 +76,7 @@
                     {% endfor %}
                 </div>
                 <span class="form__ingredient-link" id="addIng">Добавить ингредиент</span>
-                <span class="form__error">{{ error_ing }}</span>
+                <span class="form__error"></span>
             </div>
         </div>
         <div class="form__group">
@@ -105,6 +105,9 @@
         <div class="form__footer">
             <button class="button button_style_blue">Сохранить</button> <a style="margin-left: 2.5em" href="{% url 'del_recipe' recipe.author recipe.pk %}" class="form__ingredient-link">Удалить</a>
         </div>
+        {% for i in form.non_field_errors %}
+            <span class="form__error">{{ i }}</span>
+        {% endfor %}
     </form>
 </div>
 {% endblock %}

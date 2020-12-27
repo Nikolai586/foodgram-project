@@ -15,27 +15,17 @@ from .models import (
     Ingredient,
     Quantity
 )
+from .utils import (
+    get_purchases,
+    get_favorite,
+    get_ingredients_create_recipe,
+    get_tag_create_recipe
+)
 from .forms import RecipeForm
 
 User = get_user_model()
 
 PAGE_COUNT = 9
-
-
-def get_purchases(request):
-    purchases = Purchases.objects.filter(user__username=request.user).values_list('recipe_id')
-    purchases_list = []
-    for i in purchases:
-        purchases_list.append(i[0])
-    return purchases_list
-
-
-def get_favorite(request):
-    favorite = Favourites.objects.filter(user=request.user).values_list('recipe_id')
-    favorite_list = []
-    for i in favorite:
-        favorite_list.append(i[0])
-    return favorite_list
 
 
 class Index(View):
@@ -247,71 +237,40 @@ def purchases_file(request):
         return response
 
 
-def get_ingredients_create_recipe(request):
-    ingredient_list = []
-    for i, j in request.POST.items():
-        if 'nameIngredient' in i:
-            temp = i.split('_')
-            ingredient_list.append({
-                'title': j,
-                'value': int(request.POST[f'valueIngredient_{temp[1]}'])})
-    return ingredient_list
-
-
-def get_tag_create_recipe(request):
-    tags_list = []
-    for i, j in request.POST.items():
-        if j == 'on':
-            tags_list.append(i)
-    return tags_list
-
-
 @login_required
 def create_recipe(request):
+    form = RecipeForm()
     if request.method == 'POST':
         form = RecipeForm(request.POST or None, files=request.FILES or None)
         ingredients = get_ingredients_create_recipe(request)
         if ingredients == []:
-            error_ing = 'Не добавлены ингридиенты'
-            return render(request, 'form_recipe.html', {
-                'error_ing': error_ing
-            })
+            #проверка на наличие ингридиентов
+            form.add_error(None, 'Не добавлены ингридиенты')
         tags = get_tag_create_recipe(request)
         if tags == []:
-            error_tag = 'Не добавлены теги'
-            return render(request, 'form_recipe.html', {
-                'error_tag': error_tag
-            })
+            #проверка на наличие тегов
+            form.add_error(None, 'Не добавлены теги')
         for i in ingredients:
+            #проверяем есть ли ингридиенты в базе
             ingredient = Ingredient.objects.filter(title=i['title']).exists()
             if not ingredient:
-                error_ing = 'таких ингридиентов не существует'
-                return render(request, 'form_recipe.html', {
-                    'error_ing': error_ing
-                })
+                form.add_error(None, 'Таких ингридиентов не существует')
         if form.is_valid():
             new = form.save(commit=False)
             new.author = request.user
             new.save()
             for i in ingredients:
+                #добавляем ингридиенты к рецепту
                 ingredient = get_object_or_404(Ingredient, title=i['title'])
-                if Quantity.objects.filter(
-                    ingr=ingredient,
-                    quantity=i['value']
-                    ).exists():
-                    new.quantity.add(Quantity.objects.get(
-                        ingr=ingredient, quantity=i['value']
-                        ))
-                else:
-                    new.quantity.add(Quantity.objects.create(
-                        ingr=ingredient, quantity=i['value']
-                        ))
+                quantity_obj = Quantity.objects.get_or_create(ingr=ingredient, quantity=i['value'])[0]
+                new.quantity.add(quantity_obj)
             for i in tags:
+                #добавляем теги к рецепту
                 tag = get_object_or_404(Tag, tag=i)
                 new.tag.add(tag)
             form.save_m2m()
             return redirect('index')
-    return render(request, 'form_recipe.html')
+    return render(request, 'form_recipe.html', {'form': form})
 
 
 @login_required
@@ -319,11 +278,13 @@ def recipe_edit(request, username, id):
     profile = get_object_or_404(User, username=username)
     recipe = get_object_or_404(Recipe, pk=id)
     ingredientes = recipe.quantity.all()
-    tag = recipe.tag.all()
+    form = RecipeForm()
+    tag = recipe.tag.all() #получаем теги рецепта
     tags = []
     for i in tag:
         tags.append(i.tag)
     if request.user != profile:
+        #user должен быть автором рецепта
         return redirect('single', id)
     if request.method == 'POST':
         form = RecipeForm(
@@ -332,52 +293,32 @@ def recipe_edit(request, username, id):
             instance=recipe
             )
         ingredients = get_ingredients_create_recipe(request)
+        #получаем список ингридиентов из POST запроса
         if ingredients == []:
-            error_ing = 'Не добавлены ингридиенты'
-            return render(request, 'form_change_recipe.html', {
-                'error_ing': error_ing,
-                'recipe': recipe,
-                'ingredientes': ingredientes,
-                'tags': tags
-            })
+            #проверка на наличие ингридиентов
+            form.add_error(None, 'Не добавлены ингридиенты')
         for i in ingredients:
+            #проверяем есть ли ингридиенты в базе
             ingredient = Ingredient.objects.filter(title=i['title']).exists()
             if not ingredient:
-                error_ing = 'таких ингридиентов не существует'
-                return render(request, 'form_change_recipe.html', {
-                    'error_ing': error_ing,
-                    'recipe': recipe,
-                    'ingredientes': ingredientes,
-                    'tags': tags
-                })
+                form.add_error(None, 'Таких ингридиентов не существует')
         tags = get_tag_create_recipe(request)
         if tags == []:
-            error_tag = 'Не добавлены теги'
-            return render(request, 'form_change_recipe.html', {
-                'error_tag': error_tag,
-                'recipe': recipe,
-                'ingredientes': ingredientes,
-                'tags': tags
-            })
+            #проверяем на наличии тегов
+            form.add_error(None, 'Не добавлены теги')
         if form.is_valid():
             new = form.save(commit=False)
             new.save()
-            new.quantity.clear()
+            new.quantity.clear()#убираем прежний список ингридиентов
             for i in ingredients:
+                #проверяем в БД есть ли данный объект в моделе Quantity
+                #если есть он возвращается, если нет он создается
                 ingredient = get_object_or_404(Ingredient, title=i['title'])
-                if Quantity.objects.filter(
-                    ingr=ingredient,
-                    quantity=i['value']
-                    ).exists():
-                    new.quantity.add(Quantity.objects.get(
-                        ingr=ingredient, quantity=i['value']
-                        ))
-                else:
-                    new.quantity.add(Quantity.objects.create(
-                        ingr=ingredient, quantity=i['value'])
-                        )
-            new.tag.clear()
+                quantity_obj = Quantity.objects.get_or_create(ingr=ingredient, quantity=i['value'])[0]
+                new.quantity.add(quantity_obj)
+            new.tag.clear()#убирает те теги что былии ранее
             for i in tags:
+                #добавляем теги
                 tag = get_object_or_404(Tag, tag=i)
                 new.tag.add(tag)
             form.save_m2m()
@@ -386,7 +327,8 @@ def recipe_edit(request, username, id):
     return render(request, 'form_change_recipe.html', {
         'recipe': recipe,
         'ingredientes': ingredientes,
-        'tags': tags
+        'tags': tags,
+        'form': form
         })
 
 
